@@ -1,7 +1,8 @@
-package com.kawin.supply_chain_system.product;
+package com.kawin.supply_chain_system.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "products")
@@ -20,8 +21,8 @@ public class Product {
 
     private String description;
 
-    @Column(nullable = false)
     private Double price;
 
-    private Integer quantityInStock;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

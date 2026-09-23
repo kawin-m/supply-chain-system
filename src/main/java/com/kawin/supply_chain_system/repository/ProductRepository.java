@@ -1,10 +1,7 @@
-package com.kawin.supply_chain_system.product;
+package com.kawin.supply_chain_system.repository;
 
+import com.kawin.supply_chain_system.entity.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-
-
-    Optional<Product> findBySku(String sku);
 }
