@@ -1,13 +1,16 @@
 package com.kawin.supply_chain_system.service;
 
 import com.kawin.supply_chain_system.entity.*;
+import com.kawin.supply_chain_system.repository.InventoryRepository;
 import com.kawin.supply_chain_system.repository.ProductRepository;
 import com.kawin.supply_chain_system.repository.PurchaseOrderRepository;
 import com.kawin.supply_chain_system.repository.SupplierRepository;
+import com.kawin.supply_chain_system.repository.WarehouseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -21,6 +24,12 @@ public class PurchaseOrderService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private WarehouseRepository warehouseRepository;
+
+    @Autowired
+    private InventoryRepository inventoryRepository;
 
     @Transactional
     public PurchaseOrder createPurchaseOrder(PurchaseOrder order) {
@@ -59,6 +68,39 @@ public class PurchaseOrderService {
         order.setSupplier(supplier);
         order.setStatus(PurchaseOrderStatus.PENDING);
         order.setTotalAmount(total);
+        return purchaseOrderRepository.save(order);
+    }
+
+    @Transactional
+    public PurchaseOrder receivePurchaseOrder(Long orderId, Long warehouseId) {
+        PurchaseOrder order = getPurchaseOrderById(orderId);
+
+        if (order.getStatus() != PurchaseOrderStatus.PENDING) {
+            throw new RuntimeException("Only PENDING purchase orders can be received. Current status: " + order.getStatus());
+        }
+
+        Warehouse warehouse = warehouseRepository.findById(warehouseId)
+                .orElseThrow(() -> new RuntimeException("Warehouse not found with id: " + warehouseId));
+
+        for (PurchaseOrderItem item : order.getItems()) {
+            Product product = item.getProduct();
+
+            Inventory inventory = inventoryRepository
+                    .findByProductIdAndWarehouseId(product.getId(), warehouseId)
+                    .orElseGet(() -> {
+                        Inventory newInventory = new Inventory();
+                        newInventory.setProduct(product);
+                        newInventory.setWarehouse(warehouse);
+                        newInventory.setQuantityOnHand(0);
+                        return newInventory;
+                    });
+
+            inventory.setQuantityOnHand(inventory.getQuantityOnHand() + item.getQuantity());
+            inventory.setUpdatedAt(LocalDateTime.now());
+            inventoryRepository.save(inventory);
+        }
+
+        order.setStatus(PurchaseOrderStatus.RECEIVED);
         return purchaseOrderRepository.save(order);
     }
 

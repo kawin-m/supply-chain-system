@@ -19,6 +19,11 @@ public class PurchaseOrderController {
         return purchaseOrderService.createPurchaseOrder(order);
     }
 
+    @PutMapping("/{id}/receive")
+    public PurchaseOrder receivePurchaseOrder(@PathVariable Long id, @RequestParam Long warehouseId) {
+        return purchaseOrderService.receivePurchaseOrder(id, warehouseId);
+    }
+
     @GetMapping
     public List<PurchaseOrder> getAllPurchaseOrders() {
         return purchaseOrderService.getAllPurchaseOrders();
