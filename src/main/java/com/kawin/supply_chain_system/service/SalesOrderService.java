@@ -65,7 +65,7 @@ public class SalesOrderService {
                     .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
 
             Inventory inventory = inventoryRepository
-                    .findByProductIdAndWarehouseId(productId, warehouseId)
+                    .findForUpdate(productId, warehouseId)
                     .orElseThrow(() -> new RuntimeException(
                             "No inventory for product " + productId + " in warehouse " + warehouseId));
 
